@@ -1,0 +1,48 @@
+.container {
+    height: 60vh;
+    min-width: 20vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    >figure {
+        >img {
+            width: 20vh;
+            margin-bottom: 3vh;
+        }
+    }
+}
+
+.group {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: start;
+    margin: 1vh 1vw;
+
+    width: 91%;
+
+    >label {
+        font-size: 1.5rem;
+        font-weight: 500;
+        margin-bottom: 0.5vh;
+        color: #343434;
+        user-select: none;
+    }
+    >input{
+        width: 89%;
+        letter-spacing: 2px;
+    }
+    >input::selection {
+        color: #343434;
+        background: #bdc7c6;
+      }
+}
+
+button {
+    padding: 0.6em 2em;
+    width: 91%;
+    margin-top: 1vh;
+    font-size: 1.5rem;
+}

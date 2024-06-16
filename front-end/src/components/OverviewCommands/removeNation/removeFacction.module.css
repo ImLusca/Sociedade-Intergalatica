@@ -1,0 +1,36 @@
+.container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: scroll;
+    width: 100%;
+    height: 60%;
+}
+
+.container::-webkit-scrollbar {
+    width: 10px; 
+}
+
+.container::-webkit-scrollbar-thumb {
+    background: #48485c;
+    border-radius: 6px; 
+}
+
+.container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+
+.item {
+    height: 1.4rem;
+    width: 80%;
+    margin-block: 7px;
+    box-shadow: 0 0 5px #31313179;
+    border-radius: 7px;
+    text-align: center;
+    transition: .3s;
+}
+.item:hover{
+    box-shadow: 0 0 10px #2c20d394;
+
+}

@@ -1,0 +1,99 @@
+        
+DECLARE
+    -- Define custom types
+    TYPE t_planeta_id IS TABLE OF PLANETA.ID_ASTRO%TYPE;
+    TYPE t_nacao IS TABLE OF NACAO.NOME%TYPE;
+    TYPE t_datas IS TABLE OF DOMINANCIA.DATA_INI%TYPE;
+    TYPE t_num IS TABLE OF NUMBER;
+    TYPE t_faccao IS TABLE OF FACCAO.NOME%TYPE;
+
+    -- Declare collections
+    l_planeta t_planeta_id;
+    l_nacao t_nacao;
+    l_data_dominacao_ini t_datas;
+    l_data_dominacao_fim t_datas;
+    l_num_comunidades t_num;
+    l_num_especies t_num;
+    l_num_habitantes t_num;
+    l_num_faccoes t_num;
+    l_faccao_majoritaria t_faccao;
+
+BEGIN
+
+    -- nacao dominante atual, datas de fim e inicio da ultima dominação
+    SELECT
+        PLANETA.ID_ASTRO,
+        DOMINANCIA.NACAO,
+        DOMINANCIA.DATA_INI,
+        DOMINANCIA.DATA_FIM
+    BULK COLLECT INTO
+        l_planeta,
+        l_nacao,
+        l_data_dominacao_ini,
+        l_data_dominacao_fim
+    FROM
+        PLANETA
+    LEFT JOIN DOMINANCIA ON PLANETA.ID_ASTRO = DOMINANCIA.PLANETA
+                         AND DOMINANCIA.DATA_FIM IS NULL
+    ORDER BY
+        PLANETA.ID_ASTRO;
+
+    -- quantidades de comunidades, espécies, habitantes e faccoes presentes
+    SELECT
+        PLANETA.ID_ASTRO,
+        COUNT(DISTINCT COMUNIDADE.ESPECIE || COMUNIDADE.NOME), --num comuniades
+        COUNT(DISTINCT COMUNIDADE.ESPECIE), --num especies
+        COALESCE(SUM(COMUNIDADE.QTD_HABITANTES), 0), -- num habitantes
+        COUNT(DISTINCT PARTICIPA.FACCAO), -- num faccoes presentes
+        STATS_MODE(PARTICIPA.FACCAO) --faccão majoritária (STATS_MODE uma função que dado um conjunto de valores retorna o valor com maior frequência)
+    BULK COLLECT INTO
+        l_planeta,
+        l_num_comunidades,
+        l_num_especies,
+        l_num_habitantes,
+        l_num_faccoes,
+        l_faccao_majoritaria
+    FROM
+        PLANETA
+    LEFT JOIN HABITACAO ON PLANETA.ID_ASTRO = HABITACAO.PLANETA
+    LEFT JOIN COMUNIDADE ON HABITACAO.ESPECIE = COMUNIDADE.ESPECIE
+                         AND HABITACAO.COMUNIDADE = COMUNIDADE.NOME
+                         AND HABITACAO.DATA_FIM IS NULL
+    LEFT JOIN PARTICIPA ON PARTICIPA.ESPECIE = COMUNIDADE.ESPECIE
+                       AND PARTICIPA.COMUNIDADE = COMUNIDADE.NOME
+    GROUP BY
+        PLANETA.ID_ASTRO
+    ORDER BY
+        PLANETA.ID_ASTRO;
+
+    -- Print the first 20 planets or fewer if less than 20 found
+    FOR i IN 1..LEAST(cardinality(l_planeta), 20) LOOP
+                 DBMS_OUTPUT.PUT_LINE('Planeta: ' || l_planeta(i) || 
+                              ', Nacao Dominante Atual: ' || l_nacao(i) ||
+                              ', Data Inicio Dominancia: ' || l_data_dominacao_ini(i) ||
+                              ', Data Fim Dominancia: ' || l_data_dominacao_fim(i) ||
+                              ', Numero de Comunidades: ' || l_num_comunidades(i) ||
+                              ', Numero de Habitantes: ' || l_num_habitantes(i) ||
+                              ', Numero de especies: ' || l_num_especies(i) ||
+                              ', Numero de Faccoes: ' || l_num_faccoes(i) ||
+                              ', Faccao Majoritaria: ' || l_faccao_majoritaria(i));
+    END LOOP;
+
+EXCEPTION
+    WHEN SUBSCRIPT_BEYOND_COUNT THEN
+        dbms_output.put_line ('Elemento não propriamente inicializado');
+        
+    WHEN SUBSCRIPT_OUTSIDE_LIMIT THEN
+        dbms_output.put_line ('Número de chaves excedida!'); 
+        
+    WHEN COLLECTION_IS_NULL	 THEN
+        dbms_output.put_line ('Uninitialized nested table or varray'); 
+        
+    WHEN STORAGE_ERROR	 THEN
+        dbms_output.put_line ('PL/SQL acabou com a memória'); 
+        
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Erro nro: ' || SQLCODE || '. Mensagem: ' || SQLERRM);
+
+END;
+ 

@@ -297,6 +297,61 @@ INSERT INTO VW_CREDENCIAMENTO_COMUNIDADES (faccao, lider, nacao, planeta, especi
 VALUES ('Facção A', '123.456.789-10', 'Nação 2', 'Planeta 2', 'Especie 3', 'Comunidade X');
 
 
+-- 1b
+CREATE OR REPLACE PROCEDURE remove_faccao_nacao (
+    p_lider faccao.lider%TYPE,
+    p_nacao nacao.nome%TYPE
+) AS
+    nome_faccao faccao.nome%TYPE;
+    e_not_removed EXCEPTION;
+BEGIN
+    -- Obter o nome da facção do líder fornecido
+    SELECT F.nome INTO nome_faccao FROM faccao F WHERE F.lider = p_lider;
+    
+    -- Remover a nação da facção correspondente
+    DELETE FROM nacao_faccao NF WHERE nome_faccao = NF.faccao AND NF.nacao = p_nacao;
+    
+    -- Verificar se alguma linha foi afetada
+    IF SQL%NOTFOUND THEN
+        RAISE e_not_removed;
+    END IF;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Líder não encontrado');
+    WHEN e_not_removed THEN
+        RAISE_APPLICATION_ERROR(-20002, 'Nenhuma relação nação-facção removida');
+END remove_faccao_nacao;
+
+commit;
+
+select * from nacao_faccao;
+
+-- Teste
+DECLARE
+    -- Variáveis para armazenar os parâmetros
+    p_lider faccao.lider%TYPE := '123.456.782-34';
+    p_nacao nacao.nome%TYPE := 'NacaoA';
+BEGIN
+    -- Chamar a procedure para remover a nação da facção
+    remove_faccao_nacao(p_lider, p_nacao);
+    
+    -- Verificar se a nação foi removida corretamente
+    IF SQL%ROWCOUNT > 0 THEN
+        DBMS_OUTPUT.PUT_LINE('Relação nação-facção removida com sucesso.');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Nenhuma relação nação-facção foi removida.');
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Erro: ' || SQLERRM);
+END;
+
+select * from nacao_faccao;
+
+rollback;
+
+
+
 
 
 -- Relatorio Lider

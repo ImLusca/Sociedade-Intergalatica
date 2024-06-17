@@ -1,0 +1,76 @@
+.reportContainer{
+    width: 30%;
+    border-radius: 15px;
+    box-shadow: 0 0 10px #2c2c2c94;
+    transition: .4s;
+    padding: 10px;
+
+}
+
+.report{
+    overflow-y: scroll;
+    max-height: 90vh;
+    padding-right: 15px;
+
+}
+
+.report::-webkit-scrollbar {
+    width: 10px; 
+}
+
+.report::-webkit-scrollbar-thumb {
+    background: #48485c;
+    border-radius: 6px; 
+}
+
+.report::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.reportContainer:hover{
+    box-shadow: 1px 5px 20px #2c20d394;
+}
+
+.report .agrupamento{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    column-gap: 10px;
+    margin: 0;
+}
+.report .agrupamento .desc{
+    font-weight: 800;
+}
+.report .agrupamento .val{
+    font-weight: 400;
+    text-align: right;
+}
+
+.report .agrupamento p{
+    margin: 0;
+}
+
+.conjunto{
+    width: 30%;
+    padding-right: 20px;
+    display: flex;
+    flex-direction: column;
+    row-gap: 20px;
+}
+
+.conjunto .reportContainer{
+    height: 45%;
+    width: 100%;
+}
+
+
+
+.report input{
+    width: 90%;
+    margin: 10px auto;
+}
+.report button{
+    width: 95%;
+    margin-bottom: 15px;
+}
+

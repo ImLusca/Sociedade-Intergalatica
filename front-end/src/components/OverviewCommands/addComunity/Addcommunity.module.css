@@ -5,9 +5,12 @@
     height: 65%;
     align-items: center;
     justify-content: space-evenly;
+    margin-bottom: 15px;
 }
 
 .container input{
-    width: 80%;
+    width: 84%;
+    margin-bottom: 15px;
 }
+
 

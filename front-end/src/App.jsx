@@ -1,14 +1,9 @@
-import { useCallback,useState } from 'react'
-import Particles from "react-particles";
-import { loadFull } from "tsparticles";
-import particlesConfig from "./particlesConfig.json";
-
 import './App.css'
 import Card from "./components/Card";
 import Login from "./pages/Login";
+import Reports from './pages/Reports';
 
 import Overview from './pages/Overview';
-
 
 import {
   Route,
@@ -18,19 +13,14 @@ import {
 
 function App() {
 
-  const particlesInit = useCallback(async (engine) => {
-    await loadFull(engine);
-  }, []);
-
   return (
     <>
-      <Particles params={particlesConfig} init={particlesInit}></Particles>
-
       <Card>
         <Router>
           <Routes>
             <Route index element={<Login />} />
             <Route path='/overview' element={<Overview />} />
+            <Route path='/reports' element={<Reports />} />
             
           </Routes>
         </Router>

@@ -1,53 +1,48 @@
 import style from "./Login.module.css";
 import logo from "../../assets/logo.png";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { setUserClassInCookies, setUserNameInCookies } from "../../functions/cookiesManager";
+import Cookies from 'js-cookie';
+import axios from 'axios';
 
 import toastr from "toastr";
-
 
 function Login() {
     const [usrLogin, setusrLogin] = useState("");
     const [password, setpassword] = useState("");
   
     const navigate = useNavigate();
-  
+    const cookiesList = ["userCPI","userName","userClass", "userNation", "userFaction"];
+
+    useEffect(()=>{
+        cookiesList.forEach((x)=> Cookies.remove(x));
+    },[]);
+
+
     const successCb = (user) => {
+      Cookies.set("userCPI", user[0].trim());
+      Cookies.set("userName", user[1].trim());
+      Cookies.set("userClass", user[2]?.trim());
+      Cookies.set("userNation", user[3]?.trim());
+      Cookies.set("userFaction", user[4]?.trim());
+
       console.log(user);
-      document.cookie = `userToken=${user.token}`;
-      navigate("/clientes");
+
+      navigate("/overview");
     };
   
     const errorCb = (error) => {
       toastr.error('Erro ao realizar login');
-      console.log(error);
     };
   
     const doLogin = async () => {
+          
+      const login = await axios.get(`http://127.0.0.1:5000/login?user=${usrLogin}&senha=${password}`);
       
-      setUserNameInCookies(usrLogin == "" ? 'Lusca' : usrLogin);
-      setUserClassInCookies('Comandante');
-      navigate("/overview");
-      return
-  
-      const user = {
-        login: usrLogin,
-        password: password,
-      };
-  
-      const login = await fetch(endpoints.login, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(user),
-      });
-  
-      const data = await login.json();
-  
+      console.log(login)
+
       if (login.status === 200) {
-        successCb(data);
+        successCb(login.data);
         return;
       }
   

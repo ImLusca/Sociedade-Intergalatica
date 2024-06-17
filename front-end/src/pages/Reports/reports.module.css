@@ -1,0 +1,71 @@
+.container{
+    width: 80vw;
+    color: #102540;
+}
+.user{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+.user .actions{
+    width: 40%;
+    display: flex;
+    justify-content: right;
+    margin-bottom: 5vh;
+}
+.actions button{
+    height: 5vh;
+    margin-left: 10px;
+}
+
+.dashboard{
+    min-height: 65vh ;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    row-gap: 5vh;
+    padding-bottom: 3vh;
+}
+
+.reports{
+    display: flex;
+    min-height: 60vh;
+    justify-content: space-between;
+    flex-direction: row;
+    width: 100%;
+    flex-wrap: wrap;
+    row-gap: 15px;
+}
+
+.reports .reportContainer{
+    width: 30%;
+    border-radius: 15px;
+    box-shadow: 0 0 10px #2c2c2c94;
+    transition: .4s;
+    padding: 10px;
+
+}
+
+.reports .report{
+    overflow-y: scroll;
+    max-height: 70vh;
+    padding-right: 15px;
+}
+
+.reports .report::-webkit-scrollbar {
+    width: 10px; 
+}
+
+.reports .report::-webkit-scrollbar-thumb {
+    background: #48485c;
+    border-radius: 6px; 
+}
+
+.reports .report::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.reports .reportContainer:hover{
+    box-shadow: 1px 5px 20px #2c20d394;
+}

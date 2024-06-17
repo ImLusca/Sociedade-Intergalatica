@@ -2,6 +2,7 @@
     display: flex;
     flex-direction: column;
     margin: 10px;
+    margin-bottom: 27px;
 }
 
 .container h1{

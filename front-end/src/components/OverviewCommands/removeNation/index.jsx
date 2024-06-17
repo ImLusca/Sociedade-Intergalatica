@@ -1,22 +1,38 @@
 import React ,{useState} from 'react';
 import Styles from './removeFacction.module.css';
+import axios from 'axios';
+import Cookies from "js-cookie"
 
 const RemoveNation = () => {
-    
-    const Nations =['Nação 1', 'Nação 2', 'Nação 3', 'Nação 4', 'Nação 5', 'Nação 6', 'Nação 7']
+    const [changeVal, setChangeVal] = useState("");
 
-    const removeFacction = (nation)=>{
-        window.confirm(`deseja remover a facção de ${nation}?`)
-    }
-    
-    return (
-        <>
+    const handleRemove = async ()=>{
+        try {
+            const response = await axios.post(`http://127.0.0.1:5000/removeNacao`, {
+                lider: Cookies.get("userCPI"),
+                nacao: changeVal,
+            });
             
-            <h3>Remover facção da nação</h3>
+            if (response.status === 200) {
+                alert('Nação removida!');
+            }
+        } catch (error) {
+            if(error.response?.status == 500){
+                alert(error.response?.data?.error);
+                return
+            }
+            alert(`Erro: ${error}`);
+        }
+    }
+
+    return (
+        <>            
+            <h3>Remover Nação da Facção</h3>
             <div className={Styles.container}>
-                {Nations.map((nation)=>(
-                    <div className={Styles.item} onClick={()=>{removeFacction(nation)}}>{nation}</div>
-                ))}
+                <input type="text" value={changeVal} placeholder='Nome Nação' onChange={(e)=>setChangeVal(e.target.value)}/>
+                <div className={Styles.buttons}>
+                    <button onClick={handleRemove}>Remover</button>
+                </div>
             </div>
         </>
     );

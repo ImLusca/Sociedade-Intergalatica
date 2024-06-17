@@ -140,161 +140,54 @@ END;
 
 -- iii
 --View do Gerenciamento das comunidades
-CREATE OR REPLACE VIEW VW_CREDENCIAMENTO_COMUNIDADES AS
-SELECT 
-    f.nome AS faccao,
-    f.lider As Lider,
-    n.nome AS nacao,
-    d.planeta AS planeta,
-    h.especie As especie,
-    c.nome AS comunidade,
-    CASE 
-        WHEN pa.faccao IS NOT NULL THEN 'CREDENCIADA'
-        ELSE 'NAO CREDENCIADA'
-    END AS status_credenciamento
-FROM 
-    faccao f
-JOIN 
-    nacao_faccao nf ON f.nome = nf.faccao
-JOIN 
-    nacao n ON nf.nacao = n.nome
-JOIN 
-    dominancia d ON n.nome = d.nacao AND d.data_fim IS NULL
-JOIN 
-    habitacao h ON d.planeta = h.planeta AND h.data_fim IS NULL
-JOIN 
-    comunidade c ON h.especie = c.especie AND h.comunidade = c.nome
-LEFT JOIN 
-    participa pa ON pa.faccao = f.nome AND pa.especie = c.especie AND pa.comunidade = c.nome;
 
-
-select * from VW_CREDENCIAMENTO_COMUNIDADES;
-select * from VW_CREDENCIAMENTO_COMUNIDADES where lider='123.456.789-10';
-
-
-CREATE OR REPLACE TRIGGER trg_instead_of_insert_vw_credenciamento
-INSTEAD OF INSERT ON VW_CREDENCIAMENTO_COMUNIDADES
-FOR EACH ROW
-DECLARE
-    v_exists INTEGER;
-    v_faccao_exists INTEGER;
-    v_nacao_exists INTEGER;
-    v_dominancia_active INTEGER;
-    v_habitacao_active INTEGER;
-    v_comunidade_exists INTEGER;
+-- iii
+--View do Gerenciamento das comunidades
+CREATE OR REPLACE PROCEDURE GET_COMUNIDADES_HABITANDO_PLANETA (
+    p_cpi_lider IN CHAR
+)
+IS
 BEGIN
-    -- Verifica se a facção existe
-    SELECT COUNT(*)
-    INTO v_faccao_exists
-    FROM faccao
-    WHERE nome = :new.faccao;
-
-    IF v_faccao_exists = 0 THEN
-        RAISE_APPLICATION_ERROR(-20002, 'A facção não existe.');
-    END IF;
-
-    -- Verifica se a nação existe
-    SELECT COUNT(*)
-    INTO v_nacao_exists
-    FROM nacao
-    WHERE nome = :new.nacao;
-
-    IF v_nacao_exists = 0 THEN
-        RAISE_APPLICATION_ERROR(-20003, 'A nação não existe.');
-    END IF;
-
-    -- Verifica se há dominância ativa para a nação no planeta
-    SELECT COUNT(*)
-    INTO v_dominancia_active
-    FROM dominancia
-    WHERE nacao = :new.nacao
-      AND planeta = :new.planeta
-      AND data_fim IS NULL;
-
-    IF v_dominancia_active = 0 THEN
-        RAISE_APPLICATION_ERROR(-20004, 'Não há dominância ativa para a nação no planeta.');
-    END IF;
-
-    -- Verifica se há habitação ativa para a espécie no planeta
-    SELECT COUNT(*)
-    INTO v_habitacao_active
-    FROM habitacao
-    WHERE planeta = :new.planeta
-      AND especie = :new.especie
-      AND data_fim IS NULL;
-
-    IF v_habitacao_active = 0 THEN
-        RAISE_APPLICATION_ERROR(-20005, 'Não há habitação ativa para a espécie no planeta.');
-    END IF;
-
-    -- Verifica se a comunidade da espécie existe
-    SELECT COUNT(*)
-    INTO v_comunidade_exists
-    FROM comunidade
-    WHERE especie = :new.especie
-      AND nome = :new.comunidade;
-
-    IF v_comunidade_exists = 0 THEN
-        RAISE_APPLICATION_ERROR(-20006, 'A comunidade da espécie não existe.');
-    END IF;
-
-    -- Verifica se a comunidade já está credenciada
-    SELECT COUNT(*)
-    INTO v_exists
-    FROM participa
-    WHERE faccao = :new.faccao
-      AND especie = :new.especie
-      AND comunidade = :new.comunidade;
-
-    IF v_exists = 0 THEN
-        -- Insere o credenciamento na tabela PARTICIPA
-        INSERT INTO participa (faccao, especie, comunidade)
-        VALUES (:new.faccao, :new.especie, :new.comunidade);
-    ELSE
-        RAISE_APPLICATION_ERROR(-20001, 'A comunidade já está credenciada.');
-    END IF;
+    -- Cursor para buscar todas as comunidades que habitam um planeta dominado por uma das nações da facção do líder
+    FOR rec IN (
+        SELECT DISTINCT 
+            c.ESPECIE, 
+            c.NOME 
+        FROM 
+            FACCAO f
+            JOIN NACAO_FACCAO nf ON f.NOME = nf.FACCAO
+            JOIN NACAO n ON nf.NACAO = n.NOME
+            JOIN DOMINANCIA d ON n.NOME = nf.NACAO
+            JOIN HABITACAO h ON d.PLANETA = h.PLANETA
+            JOIN COMUNIDADE c ON h.ESPECIE = c.ESPECIE AND h.COMUNIDADE = c.NOME
+        WHERE 
+            f.LIDER = p_cpi_lider
+    ) LOOP
+        -- Saída das comunidades
+        DBMS_OUTPUT.PUT_LINE('Espécie: ' || rec.ESPECIE || ', Comunidade: ' || rec.NOME);
+    END LOOP;
 END;
 
---Inserts validos
-INSERT INTO VW_CREDENCIAMENTO_COMUNIDADES (faccao, lider, nacao, planeta, especie, comunidade, status_credenciamento)
-VALUES ('Facção A', '123.456.789-10', 'Nação 2', 'Planeta 2', 'Especie 3', 'Comunidade 3', 'CREDENCIADA');
 
-INSERT INTO VW_CREDENCIAMENTO_COMUNIDADES (faccao, lider, nacao, planeta, especie, comunidade)
-VALUES ('Facção A', '123.456.789-10', 'Nação 1', 'Planeta 1', 'Especie 2', 'Comunidade 2');
-
---inserts invalidos
-INSERT INTO VW_CREDENCIAMENTO_COMUNIDADES (faccao, lider, nacao, planeta, especie, comunidade)
-VALUES ('Facção X', '123.456.789-10', 'Nação 2', 'Planeta 2', 'Especie 3', 'Comunidade 3');
-
-INSERT INTO VW_CREDENCIAMENTO_COMUNIDADES (faccao, lider, nacao, planeta, especie, comunidade)
-VALUES ('Facção A', '123.456.789-10', 'Nação X', 'Planeta 2', 'Especie 3', 'Comunidade 3');
-
-INSERT INTO VW_CREDENCIAMENTO_COMUNIDADES (faccao, lider, nacao, planeta, especie, comunidade)
-VALUES ('Facção A', '123.456.789-10', 'Nação 1', 'Planeta 2', 'Especie 1', 'Comunidade 1');
-
-INSERT INTO VW_CREDENCIAMENTO_COMUNIDADES (faccao, lider, nacao, planeta, especie, comunidade)
-VALUES ('Facção A', '123.456.789-10', 'Nação 2', 'Planeta 2', 'Especie 3', 'Comunidade X');
-
-
---Inserts validos
-INSERT INTO VW_CREDENCIAMENTO_COMUNIDADES (faccao, lider, nacao, planeta, especie, comunidade, status_credenciamento)
-VALUES ('Facção A', '123.456.789-10', 'Nação 2', 'Planeta 2', 'Especie 3', 'Comunidade 3', 'CREDENCIADA');
-
-INSERT INTO VW_CREDENCIAMENTO_COMUNIDADES (faccao, lider, nacao, planeta, especie, comunidade)
-VALUES ('Facção A', '123.456.789-10', 'Nação 1', 'Planeta 1', 'Especie 2', 'Comunidade 2');
-
---inserts invalidos
-INSERT INTO VW_CREDENCIAMENTO_COMUNIDADES (faccao, lider, nacao, planeta, especie, comunidade)
-VALUES ('Facção X', '123.456.789-10', 'Nação 2', 'Planeta 2', 'Especie 3', 'Comunidade 3');
-
-INSERT INTO VW_CREDENCIAMENTO_COMUNIDADES (faccao, lider, nacao, planeta, especie, comunidade)
-VALUES ('Facção A', '123.456.789-10', 'Nação X', 'Planeta 2', 'Especie 3', 'Comunidade 3');
-
-INSERT INTO VW_CREDENCIAMENTO_COMUNIDADES (faccao, lider, nacao, planeta, especie, comunidade)
-VALUES ('Facção A', '123.456.789-10', 'Nação 1', 'Planeta 2', 'Especie 1', 'Comunidade 1');
-
-INSERT INTO VW_CREDENCIAMENTO_COMUNIDADES (faccao, lider, nacao, planeta, especie, comunidade)
-VALUES ('Facção A', '123.456.789-10', 'Nação 2', 'Planeta 2', 'Especie 3', 'Comunidade X');
+CREATE OR REPLACE PROCEDURE INSERE_PARTICIPA (
+    p_especie     IN VARCHAR2,
+    p_comunidade  IN VARCHAR2,
+    p_faccao      IN VARCHAR2
+)
+IS
+BEGIN
+    -- Inserir a nova tupla na tabela PARTICIPA
+    INSERT INTO PARTICIPA (ESPECIE, COMUNIDADE, FACCAO)
+    VALUES (p_especie, p_comunidade, p_faccao);
+    
+    -- Mensagem de sucesso (opcional)
+    DBMS_OUTPUT.PUT_LINE('Inserção realizada com sucesso: ' ||
+                         'Espécie = ' || p_especie || ', Comunidade = ' || p_comunidade || ', Facção = ' || p_faccao);
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Captura qualquer erro e levanta uma exceção com uma mensagem customizada
+        RAISE_APPLICATION_ERROR(-20001, 'Erro ao inserir a tupla em PARTICIPA: ' || SQLERRM);
+END;
 
 
 -- 1b

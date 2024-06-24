@@ -9,8 +9,11 @@ Nesse projeto foi desenvolvido um sistema de gerenciamento para a Sociedade Gal√
 
 Back-End
 1. cd back-end
-2. pip install requirements
-3. python run.py
+2. cd Sociedade
+3. ./Scripts/activate (no windows para entrar na venv)
+4. cd ../sociedadeInter
+5. pip install requirements
+6. python run.py
 
 Front-End
 1. cd back-end
